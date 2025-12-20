@@ -18,7 +18,7 @@ def call_gemini(prompt):
         
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
-    # 增加安全性设定，防止因为敏感词被屏蔽
+    # 安全设置：全部放行，防止新闻内容误触拦截
     safety_settings = [
         {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -46,7 +46,7 @@ def call_gemini(prompt):
         print(f"Network Error: {e}")
         return None
 
-# --- 生成每日综述 (紫色大卡片) ---
+# --- 生成每日综述 ---
 def generate_overview(titles):
     prompt = f"""
     你是一个科技情报分析师。请根据以下今日新闻标题，写一段150字左右的【市场舆情综述】。
@@ -89,7 +89,7 @@ def main():
         print("❌ RSS 抓取失败或为空")
         return
 
-    # 取前 10 条，避免超时
+    # 取前 10 条
     entries = feed.entries[:10]
     titles_list = [e.title for e in entries]
     
@@ -99,8 +99,8 @@ def main():
     if not overview_text:
         overview_text = "今日暂无 AI 生成的综述，请直接查看下方简讯。"
 
-    # 4. 拼接 Markdown (内嵌 HTML 以适配 CSS)
-    # 注意：这里的 HTML 字符串都是顶格写的，没有缩进
+    # 4. 拼接 Markdown
+    # 注意：为了防止 Markdown 解析错误，HTML 标签全部顶格写
     md = f"""# 📅 舆情日报 {today}
 <div class="update-time">更新于北京时间 {now_time}</div>
 
@@ -129,8 +129,8 @@ def main():
         elif ai_res:
             summary = ai_res
 
-        # 生成新闻卡片 HTML
-        # 🔴 关键修改：去掉了下面字符串前面的缩进！
+        # 拼接单张卡片 HTML
+        # 注意：这里也是顶格写，没有缩进！
         md += f"""
 <div class="news-card">
 <h4><a href="{entry.link}" target="_blank">{entry.title}</a></h4>
@@ -141,7 +141,7 @@ def main():
 </div>
 </div>
 """
-        # 简单限速防止 API 报错
+        # 简单限速
         time.sleep(1)
 
     md += "</div>\n" # 闭合 news-list
@@ -154,23 +154,6 @@ def main():
     # 复制为 latest.md
     shutil.copy(file_path, os.path.join(posts_dir, "latest.md"))
     print(f"✅ 完成！文件已生成：{file_path}")
-
-if __name__ == "__main__":
-    main()
-            <span>{entry.source.title if hasattr(entry, 'source') else '36Kr'}</span>
-        </div>
-    </div>
-"""
-
-    md_content += "</div>\n" # 闭合 news-list
-
-    # 5. 保存文件
-    filename = os.path.join(posts_dir, f"{today_str}.md")
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(md_content)
-    
-    shutil.copy(filename, os.path.join(posts_dir, "latest.md"))
-    print("✅ 完成！")
 
 if __name__ == "__main__":
     main()
