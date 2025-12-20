@@ -11,7 +11,7 @@ hero:
       link: /posts/latest
     - theme: alt
       text: GitHub 源码
-      link: https://github.com/你的用户名/daily-news-bot
+      link: https://github.com/cupide007/daily-news-bot
 
 features:
   - title: 自动更新
