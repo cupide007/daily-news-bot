@@ -11,7 +11,7 @@ API_KEY = os.environ.get("GEMINI_API_KEY") # 从 GitHub Secrets 获取
 
 # --- AI 处理函数 (调用 Gemini) ---
 def summarize_with_ai(content):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
     
     # 提示词：你可以修改这里来调整 AI 的语气
