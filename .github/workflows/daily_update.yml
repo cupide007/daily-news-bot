@@ -2,78 +2,76 @@ name: Daily News Update
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 0点运行
-  workflow_dispatch:
+    - cron: '0 0 * * *' # 每天 UTC 0点 (北京时间 8:00) 运行
+  workflow_dispatch: # 允许手动点击运行
 
 permissions:
-  contents: write
+  contents: write # 允许写入代码仓库
+  pages: write    # 允许发布 GitHub Pages
+  id-token: write # 允许 GitHub Pages 身份验证
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. 拉取代码
-      - name: Checkout
+      # 1. 关键步骤：检出代码 (必须有这一步，否则会报 not a git repository)
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. 设置 Python 环境 (跑爬虫)
+      # 2. 设置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       
+      # 3. 安装 Python 依赖
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
       
+      # 4. 运行 Python 爬虫 (生成 Markdown)
       - name: Run Python Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py
 
-      # 3. 提交新生成的 Markdown 文件 (保存数据)
+      # 5. 提交生成的文章 (Markdown) 到仓库
+      # 这一步是为了保存历史记录
       - name: Commit new posts
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/posts/
-          git commit -m "Auto add daily news" || echo "No changes"
+          git commit -m "Auto add daily news" || echo "No changes to commit"
           git push
 
-      # 4. 设置 Node.js 环境 (跑前端打包)
+      # 6. 设置 Node.js 环境 (用于构建 VitePress 网站)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # 7. 安装前端依赖
       - name: Install Node Dependencies
         run: npm install
 
+      # 8. 打包网站
       - name: Build VitePress Site
         run: npm run docs:build
 
-      # 5. 部署到 GitHub Pages
+      # 9. 上传打包好的文件
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
+  # 10. 部署任务
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build-and-deploy
     runs-on: ubuntu-latest
-    permissions:
-      pages: write      # 必须有这个权限
-      id-token: write   # 必须有这个权限
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "Update daily news" || echo "No changes to commit"
-          git push
