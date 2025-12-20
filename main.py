@@ -16,9 +16,8 @@ def call_gemini(prompt):
         print("❌ 错误：未找到 GEMINI_API_KEY")
         return None
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
-    # 安全设置：全部放行，防止新闻内容误触拦截
     safety_settings = [
         {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -99,18 +98,17 @@ def main():
     if not overview_text:
         overview_text = "今日暂无 AI 生成的综述，请直接查看下方简讯。"
 
-    # 4. 拼接 Markdown
-    # 注意：为了防止 Markdown 解析错误，HTML 标签全部顶格写
-    md = f"""# 📅 舆情日报 {today}
-<div class="update-time">更新于北京时间 {now_time}</div>
+    # 4. 拼接 Markdown 头部
+    # 使用 \n 换行，确保没有多余空格
+    md = f"# 📅 舆情日报 {today}\n\n"
+    md += f'<div class="update-time">更新于北京时间 {now_time}</div>\n\n'
 
-<div class="daily-overview">
-<h3>🛡️ AI 核心情报</h3>
-<p>{overview_text}</p>
-</div>
+    md += '<div class="daily-overview">\n'
+    md += '<h3>🛡️ AI 核心情报</h3>\n'
+    md += f'<p>{overview_text}</p>\n'
+    md += '</div>\n\n'
 
-<div class="news-list">
-"""
+    md += '<div class="news-list">\n'
 
     # 5. 循环处理每条新闻
     for i, entry in enumerate(entries):
@@ -129,22 +127,23 @@ def main():
         elif ai_res:
             summary = ai_res
 
-        # 拼接单张卡片 HTML
-        # 注意：这里也是顶格写，没有缩进！
-        md += f"""
-<div class="news-card">
-<h4><a href="{entry.link}" target="_blank">{entry.title}</a></h4>
-<div class="summary">{summary}</div>
-<div class="news-meta">
-<span class="tag-pill">{tag}</span>
-<span class="source-name">36Kr</span>
-</div>
-</div>
-"""
+        # --- 🔴 关键修改：使用拼接方式，确保 0 缩进 ---
+        card = ""
+        card += '<div class="news-card">\n'
+        card += f'<h4><a href="{entry.link}" target="_blank">{entry.title}</a></h4>\n'
+        card += f'<div class="summary">{summary}</div>\n'
+        card += '<div class="news-meta">\n'
+        card += f'<span class="tag-pill">{tag}</span>\n'
+        card += '<span class="source-name">36Kr</span>\n'
+        card += '</div>\n'
+        card += '</div>\n\n'
+        
+        md += card
+        
         # 简单限速
         time.sleep(1)
 
-    md += "</div>\n" # 闭合 news-list
+    md += '</div>\n' # 闭合 news-list
 
     # 6. 保存文件
     file_path = os.path.join(posts_dir, f"{today}.md")
