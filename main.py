@@ -15,7 +15,8 @@ def call_gemini(prompt):
     if not API_KEY:
         print("❌ 错误：未找到 GEMINI_API_KEY")
         return None
-        
+    
+    # 使用 flash 模型，速度快
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
     safety_settings = [
@@ -48,11 +49,8 @@ def call_gemini(prompt):
 # --- 生成每日综述 ---
 def generate_overview(titles):
     prompt = f"""
-    你是一个科技情报分析师。请根据以下今日新闻标题，写一段150字左右的【市场舆情综述】。
-    要求：
-    1. 语气专业、客观，类似金融研报。
-    2. 提炼出核心趋势（如AI应用、硬件发布、股市波动等）。
-    3. 不要使用列表，写成一段通顺的文字。
+    请根据以下新闻标题，写一段150字左右的【市场舆情综述】。
+    要求：语气专业、客观。不要分点，写成一段话。
     
     新闻标题：
     {titles}
@@ -85,10 +83,9 @@ def main():
     feed = feedparser.parse(RSS_URL)
     
     if not feed.entries:
-        print("❌ RSS 抓取失败或为空")
+        print("❌ RSS 抓取失败")
         return
 
-    # 取前 10 条
     entries = feed.entries[:10]
     titles_list = [e.title for e in entries]
     
@@ -96,19 +93,19 @@ def main():
     print("🤖 正在生成宏观综述...")
     overview_text = generate_overview("\n".join(titles_list))
     if not overview_text:
-        overview_text = "今日暂无 AI 生成的综述，请直接查看下方简讯。"
+        overview_text = "今日暂无综述。"
+    
+    # 清理一下 AI 返回文本里的换行符，防止破坏 HTML 结构
+    overview_text = overview_text.replace("\n", "").replace('"', "'")
 
     # 4. 拼接 Markdown 头部
-    # 使用 \n 换行，确保没有多余空格
     md = f"# 📅 舆情日报 {today}\n\n"
     md += f'<div class="update-time">更新于北京时间 {now_time}</div>\n\n'
-
-    md += '<div class="daily-overview">\n'
-    md += '<h3>🛡️ AI 核心情报</h3>\n'
-    md += f'<p>{overview_text}</p>\n'
-    md += '</div>\n\n'
-
-    md += '<div class="news-list">\n'
+    
+    # 强制单行 HTML，防止缩进错误
+    md += f'<div class="daily-overview"><h3>🛡️ AI 核心情报</h3><p>{overview_text}</p></div>\n\n'
+    
+    md += '<div class="news-list">\n\n'
 
     # 5. 循环处理每条新闻
     for i, entry in enumerate(entries):
@@ -122,37 +119,28 @@ def main():
         
         if ai_res and "|" in ai_res:
             parts = ai_res.split("|")
-            summary = parts[0].strip()
+            summary = parts[0].strip().replace("\n", "") # 清理换行
             if len(parts) > 1: tag = parts[1].strip()
         elif ai_res:
-            summary = ai_res
+            summary = ai_res.replace("\n", "")
 
-        # --- 🔴 关键修改：使用拼接方式，确保 0 缩进 ---
-        card = ""
-        card += '<div class="news-card">\n'
-        card += f'<h4><a href="{entry.link}" target="_blank">{entry.title}</a></h4>\n'
-        card += f'<div class="summary">{summary}</div>\n'
-        card += '<div class="news-meta">\n'
-        card += f'<span class="tag-pill">{tag}</span>\n'
-        card += '<span class="source-name">36Kr</span>\n'
-        card += '</div>\n'
-        card += '</div>\n\n'
+        # --- ⚛️ 核心修复：压缩为单行 HTML ---
+        # 只要这一整行没有换行符，Markdown 就绝不可能把它渲染成代码块
+        card_html = f'<div class="news-card"><h4><a href="{entry.link}" target="_blank">{entry.title}</a></h4><div class="summary">{summary}</div><div class="news-meta"><span class="tag-pill">{tag}</span><span class="source-name">36Kr</span></div></div>'
         
-        md += card
+        md += card_html + "\n\n" # 每个卡片之间空一行
         
-        # 简单限速
         time.sleep(1)
 
-    md += '</div>\n' # 闭合 news-list
+    md += '</div>\n'
 
     # 6. 保存文件
     file_path = os.path.join(posts_dir, f"{today}.md")
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(md)
     
-    # 复制为 latest.md
     shutil.copy(file_path, os.path.join(posts_dir, "latest.md"))
-    print(f"✅ 完成！文件已生成：{file_path}")
+    print(f"✅ 完成！")
 
 if __name__ == "__main__":
     main()
