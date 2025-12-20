@@ -1,0 +1,75 @@
+/* docs/.vitepress/theme/style.css */
+
+/* 1. 核心综述卡片 (仿图2的紫色渐变) */
+.daily-overview {
+    background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+    /* 或者试试紫色系: background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    color: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 91, 234, 0.2);
+    margin-bottom: 30px;
+    font-size: 1.05em;
+    line-height: 1.7;
+}
+
+.daily-overview h3 {
+    margin-top: 0 !important;
+    color: white !important;
+    display: flex;
+    align-items: center;
+    font-size: 1.3em;
+}
+
+/* 2. 新闻列表容器 (仿图3) */
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 3. 单条新闻卡片 */
+.news-card {
+    background: var(--vp-c-bg-soft); /* 自动适配深色模式 */
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--vp-c-divider);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.news-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.news-card h4 {
+    margin: 0 0 10px 0 !important;
+    font-size: 1.1em;
+    padding-top: 0 !important;
+}
+
+.news-card a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.news-card a:hover {
+    color: var(--vp-c-brand);
+}
+
+.news-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 0.85em;
+    color: var(--vp-c-text-2);
+}
+
+.tag-pill {
+    background: var(--vp-c-brand-soft);
+    color: var(--vp-c-brand);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
