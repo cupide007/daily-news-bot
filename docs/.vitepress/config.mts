@@ -25,6 +25,7 @@ function getSidebar() {
 }
 
 export default defineConfig({
+  base: '/daily-news-bot/', 
   title: "Daily News AI",
   description: "AI Daily News Aggregator",
   themeConfig: {
