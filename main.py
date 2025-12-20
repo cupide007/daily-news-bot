@@ -12,7 +12,7 @@ API_KEY = os.environ.get("GEMINI_API_KEY")
 # --- AI 处理函数 ---
 def summarize_with_ai(content):
     # 使用 Gemini Flash 模型
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemma-3-4b:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
     
     # 提示词：要求返回 "摘要|标签" 的格式
