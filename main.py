@@ -24,7 +24,7 @@ def call_gemini(prompt):
         print("❌ 错误：未找到 GEMINI_API_KEY")
         return None
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
     # 安全设置放行
     safety_settings = [
