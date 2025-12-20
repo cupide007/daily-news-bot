@@ -30,11 +30,11 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
-      { text: '关于', link: 'https://github.com/你的用户名/daily-news-bot' }
+      { text: '关于', link: 'https://github.com/cupide007/daily-news-bot' }
     ],
     sidebar: getSidebar(),
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/你的用户名/daily-news-bot' }
+      { icon: 'github', link: 'https://github.com/cupide007/daily-news-bot' }
     ]
   }
 })
